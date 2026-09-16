@@ -19,11 +19,14 @@ button_image = pygame.image.load(os.path.join("images", "timer2.png"))
 def process(screen: pygame.Surface, dt: float):
     ## BACKGROUND
     screen.blit(background)
+    draw_text(screen=screen, s=timer_state, position=(400, 100))
 
     if timer_state == 'stopped':
         process_stopped_timer(screen)
-    elif timer_state == 'started':
-        process_started_timer(screen, dt)
+    elif timer_state == 'running':
+        process_running_timer(screen, dt)
+    elif timer_state == 'overtime':
+        process_overtime_timer(screen, dt)
     elif timer_state == 'paused':
         process_paused_timer(screen)
     else:
@@ -31,18 +34,24 @@ def process(screen: pygame.Surface, dt: float):
 
 
 def process_paused_timer(screen):
-    # if total_seconds_remaining <= 0:
     draw_timer(screen)
     handle_click_to_reset()
 
 
-def process_started_timer(screen, dt):
+def process_running_timer(screen, dt):
+    global timer_state
+
+    draw_timer(screen)
+    count_down(dt)
+    
     if total_seconds_remaining <= 0:
-        if first_half_of_second(total_seconds_remaining):
-            pass # hide timer
-        else:
-            draw_timer(screen)
-        
+        timer_state = 'overtime'
+    # handle_click_to_pause()
+    
+
+def process_overtime_timer(screen, dt):
+    if first_half_of_second(total_seconds_remaining):
+        pass # hide timer
     else:
         draw_timer(screen)
 
@@ -53,7 +62,6 @@ def process_started_timer(screen, dt):
 def process_stopped_timer(screen):
     draw_button(screen)
     handle_click_to_start()
-
 
 
 def first_half_of_second(seconds: float):
@@ -83,7 +91,7 @@ def handle_click_to_start():
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = 'started'
+        timer_state = 'running'
 
 
 def handle_click_to_pause():

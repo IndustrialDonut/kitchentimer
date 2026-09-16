@@ -11,7 +11,8 @@ dt = 0
 total_seconds_remaining = 10.0
 
 is_alarm_played = False
-button_was_clicked = False
+timer_started = False
+timer_paused = False
 
 button_position = (background.get_size()[0]*0.10, background.get_size()[1]*0.15)
 button_image = pygame.image.load(os.path.join("images", "timer2.png")) 
@@ -23,21 +24,27 @@ def process(screen: pygame.Surface, dt: float):
     ## BACKGROUND
     screen.blit(background)
 
-    if button_was_clicked:
-        if total_seconds_remaining <= 0:
-            if not is_alarm_played:
-                # play_alarm_sound()
-                is_alarm_played = True
+    if timer_started:
+        if timer_paused: # implement behavior for timer if it's in the 'paused' state
+            # if total_seconds_remaining <= 0:
+            is_alarm_played = False
+            draw_timer(screen)
+        else:
+            if total_seconds_remaining <= 0:
+                if not is_alarm_played:
+                    # play_alarm_sound()
+                    is_alarm_played = True
+                
+                if first_half_of_second(total_seconds_remaining):
+                    pass # hide timer
+                else:
+                    draw_timer(screen)
             
-            if first_half_of_second(total_seconds_remaining):
-                pass # hide timer
             else:
                 draw_timer(screen)
-        
-        else:
-            draw_timer(screen)
 
-        count_down(dt)
+            count_down(dt)
+            process_button_paused()
     else:
         draw_button(screen)
         process_button()
@@ -66,11 +73,19 @@ def draw_timer(screen):
 
 
 def process_button():
-    global button_was_clicked
+    global timer_started
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        button_was_clicked = not button_was_clicked
+        timer_started = not timer_started
+
+
+def process_button_paused():
+    global timer_paused
+    rectangle = button_image.get_rect()
+    rectangle = rectangle.move(button_position)
+    if button_just_clicked(rectangle):
+        timer_paused = not timer_paused
 
 
 def draw_button(screen: pygame.Surface):

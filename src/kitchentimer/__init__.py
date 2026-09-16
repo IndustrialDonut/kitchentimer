@@ -29,6 +29,7 @@ def process(screen: pygame.Surface, dt: float):
             # if total_seconds_remaining <= 0:
             is_alarm_played = False
             draw_timer(screen)
+            process_timer_reset()
         else:
             if total_seconds_remaining <= 0:
                 if not is_alarm_played:
@@ -86,6 +87,19 @@ def process_button_paused():
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
         timer_paused = not timer_paused
+
+
+def process_timer_reset():
+    global timer_paused
+    global timer_started
+    global total_seconds_remaining
+
+    rectangle = button_image.get_rect()
+    rectangle = rectangle.move(button_position)
+    if button_just_clicked(rectangle):
+        timer_started = False
+        timer_paused = False
+        total_seconds_remaining = 10.0
 
 
 def draw_button(screen: pygame.Surface):

@@ -10,45 +10,50 @@ running = True
 dt = 0
 total_seconds_remaining = 10.0
 
-is_alarm_played = False
-timer_started = False
-timer_paused = False
+timer_state = 'stopped' # BASIC STATE MACHINE
 
 button_position = (background.get_size()[0]*0.10, background.get_size()[1]*0.15)
 button_image = pygame.image.load(os.path.join("images", "timer2.png")) 
 
 
 def process(screen: pygame.Surface, dt: float):
-    global is_alarm_played
-
     ## BACKGROUND
     screen.blit(background)
 
-    if timer_started:
-        if timer_paused: # implement behavior for timer if it's in the 'paused' state
-            # if total_seconds_remaining <= 0:
-            is_alarm_played = False
-            draw_timer(screen)
-            process_timer_reset()
-        else:
-            if total_seconds_remaining <= 0:
-                if not is_alarm_played:
-                    # play_alarm_sound()
-                    is_alarm_played = True
-                
-                if first_half_of_second(total_seconds_remaining):
-                    pass # hide timer
-                else:
-                    draw_timer(screen)
-            
-            else:
-                draw_timer(screen)
-
-            count_down(dt)
-            process_button_paused()
+    if timer_state == 'stopped':
+        process_stopped_timer(screen)
+    elif timer_state == 'started':
+        process_started_timer(screen, dt)
+    elif timer_state == 'paused':
+        process_paused_timer(screen)
     else:
-        draw_button(screen)
-        process_button()
+        print('WARNING: Invalid timer state.')
+
+
+def process_paused_timer(screen):
+    # if total_seconds_remaining <= 0:
+    draw_timer(screen)
+    handle_click_to_reset()
+
+
+def process_started_timer(screen, dt):
+    if total_seconds_remaining <= 0:
+        if first_half_of_second(total_seconds_remaining):
+            pass # hide timer
+        else:
+            draw_timer(screen)
+        
+    else:
+        draw_timer(screen)
+
+    count_down(dt)
+    handle_click_to_pause()
+
+
+def process_stopped_timer(screen):
+    draw_button(screen)
+    handle_click_to_start()
+
 
 
 def first_half_of_second(seconds: float):
@@ -73,32 +78,30 @@ def draw_timer(screen):
     draw_text(screen, formatted_time_string, position=button_center)
 
 
-def process_button():
-    global timer_started
+def handle_click_to_start():
+    global timer_state
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_started = not timer_started
+        timer_state = 'started'
 
 
-def process_button_paused():
-    global timer_paused
+def handle_click_to_pause():
+    global timer_state
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_paused = not timer_paused
+        timer_state = 'paused'
 
 
-def process_timer_reset():
-    global timer_paused
-    global timer_started
+def handle_click_to_reset():
+    global timer_state
     global total_seconds_remaining
 
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_started = False
-        timer_paused = False
+        timer_state = 'stopped'
         total_seconds_remaining = 10.0
 
 

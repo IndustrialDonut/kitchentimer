@@ -27,6 +27,7 @@ button_image = pygame.image.load(os.path.join("images", "timer2.png"))
 alarm_sound = pygame.mixer.Sound("audio/freesound_community-alarm-clock-short-6402.mp3")
 sizzling_sound = pygame.mixer.Sound("audio/oxidvideos-sizzlingcooking-eggs-414333.mp3")
 
+
 def process(screen: pygame.Surface, dt: float):
     ## BACKGROUND
     screen.blit(background)
@@ -65,7 +66,7 @@ def process_running_timer(screen, dt):
         alarm_sound.play(loops=-1)
     
     handle_click_to_pause()
-    
+
 
 def process_overtime_timer(screen, dt):
     if first_half_of_second(total_seconds_remaining):
@@ -75,7 +76,6 @@ def process_overtime_timer(screen, dt):
 
     count_down(dt)
     handle_click_to_hold()
-    
 
 
 def process_stopped_timer(screen):
@@ -104,34 +104,36 @@ def draw_timer(screen):
     draw_text(screen, formatted_time_string, position=button_center)
 
 
+## Maybe some of these handlers will listen for RMB or for a continuous click,
+## or for a key + click.
+## So I think it's acceptable to leave the duplicate "if button_just_clicked():" in each of them for now. At this stage is over-engineering
+## to go really any further than that.
 def handle_click_to_run():
-    rectangle = button_image.get_rect()
-    rectangle = rectangle.move(button_position)
-    if button_just_clicked(rectangle):
+    if button_just_clicked():
         set_timer_state(TimerState.RUNNING)
 
 
 def handle_click_to_pause():
-    rectangle = button_image.get_rect()
-    rectangle = rectangle.move(button_position)
-    if button_just_clicked(rectangle):
+    if button_just_clicked():
         set_timer_state(TimerState.PAUSED)
 
 
 def handle_click_to_hold():
-    rectangle = button_image.get_rect()
-    rectangle = rectangle.move(button_position)
-    if button_just_clicked(rectangle):
+    if button_just_clicked():
         set_timer_state(TimerState.FINAL_HOLD)
         alarm_sound.stop()
 
 
 def handle_click_to_reset():
-    rectangle = button_image.get_rect()
-    rectangle = rectangle.move(button_position)
-    if button_just_clicked(rectangle):
+    if button_just_clicked():
         set_timer_state(TimerState.STOPPED)
         set_total_seconds_remaining(EGG_COOK_TIME_SECONDS)
+
+
+def button_just_clicked() -> bool:
+    button_rect = button_image.get_rect()
+    button_rect = button_rect.move(button_position)
+    return rect_just_clicked(button_rect)
 
 
 def set_timer_state(x: TimerState):
@@ -148,13 +150,14 @@ def draw_button(screen: pygame.Surface):
     screen.blit(button_image, button_position)
 
 
-def button_just_clicked(rect):
-    return mouse_cursor_within_button(rect) and mouse_was_clicked()
+def rect_just_clicked(rect):
+    return mouse_cursor_within_rect(rect) and mouse_was_clicked()
 
 
-def mouse_cursor_within_button(rect):
+def mouse_cursor_within_rect(rect):
     t = rect.collidepoint(pygame.mouse.get_pos())
     return t
+
 
 def mouse_was_clicked():
     return pygame.mouse.get_just_pressed()[0]

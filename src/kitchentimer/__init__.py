@@ -2,6 +2,8 @@ import pygame
 import os
 from enum import StrEnum
 
+EGG_COOK_TIME_SECONDS = 10.0
+
 # pygame setup
 pygame.init()
 background = pygame.image.load(os.path.join("images", "peakpx.jpg"))
@@ -9,7 +11,7 @@ screen = pygame.display.set_mode(background.get_size())
 clock = pygame.time.Clock()
 running = True
 dt = 0
-total_seconds_remaining = 10.0
+total_seconds_remaining = EGG_COOK_TIME_SECONDS
 
 class TimerState(StrEnum):
     STOPPED = 'Stopped'
@@ -46,9 +48,7 @@ def process(screen: pygame.Surface, dt: float):
 
 def process_paused_timer(screen):
     draw_timer(screen)
-
-    handle_click_to_start()
-    # handle_click_to_resume()
+    handle_click_to_run()
 
 
 def process_final_hold_timer(screen):
@@ -57,14 +57,13 @@ def process_final_hold_timer(screen):
 
 
 def process_running_timer(screen, dt):
-    global timer_state
-
     draw_timer(screen)
     count_down(dt)
     
     if total_seconds_remaining <= 0:
-        timer_state = TimerState.OVERTIME
+        set_timer_state(TimerState.OVERTIME)
         alarm_sound.play(loops=-1)
+    
     handle_click_to_pause()
     
 
@@ -81,7 +80,7 @@ def process_overtime_timer(screen, dt):
 
 def process_stopped_timer(screen):
     draw_button(screen)
-    handle_click_to_start()
+    handle_click_to_run()
 
 
 def first_half_of_second(seconds: float):
@@ -96,8 +95,7 @@ def get_fraction(x: float):
 
 
 def count_down(dt):
-    global total_seconds_remaining
-    total_seconds_remaining = total_seconds_remaining - dt
+    set_total_seconds_remaining(total_seconds_remaining - dt)
 
 
 def draw_timer(screen):
@@ -106,47 +104,44 @@ def draw_timer(screen):
     draw_text(screen, formatted_time_string, position=button_center)
 
 
-def handle_click_to_start():
-    global timer_state
+def handle_click_to_run():
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = TimerState.RUNNING
-        # timer_state = 'running'
+        set_timer_state(TimerState.RUNNING)
 
 
 def handle_click_to_pause():
-    global timer_state
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = TimerState.PAUSED
+        set_timer_state(TimerState.PAUSED)
 
 
 def handle_click_to_hold():
-    global timer_state
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = TimerState.FINAL_HOLD
+        set_timer_state(TimerState.FINAL_HOLD)
         alarm_sound.stop()
-# def handle_click_to_resume():
-#     global timer_state
-#     rectangle = button_image.get_rect()
-#     rectangle = rectangle.move(button_position)
-#     if button_just_clicked(rectangle):
-#         timer_state = 'running'
 
 
 def handle_click_to_reset():
-    global timer_state
-    global total_seconds_remaining
-
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = TimerState.STOPPED
-        total_seconds_remaining = 10.0
+        set_timer_state(TimerState.STOPPED)
+        set_total_seconds_remaining(EGG_COOK_TIME_SECONDS)
+
+
+def set_timer_state(x: TimerState):
+    global timer_state
+    timer_state = x
+
+
+def set_total_seconds_remaining(x: float):
+    global total_seconds_remaining
+    total_seconds_remaining = x
 
 
 def draw_button(screen: pygame.Surface):

@@ -1,5 +1,6 @@
 import pygame
 import os
+from enum import StrEnum
 
 # pygame setup
 pygame.init()
@@ -10,7 +11,14 @@ running = True
 dt = 0
 total_seconds_remaining = 10.0
 
-timer_state = 'stopped' # BASIC STATE MACHINE
+class TimerState(StrEnum):
+    STOPPED = 'Stopped'
+    RUNNING = 'Running'
+    OVERTIME = 'Overtime'
+    PAUSED = 'Paused'
+    FINAL_HOLD = 'Final Hold'
+
+timer_state: TimerState = TimerState.STOPPED
 
 button_position = (background.get_size()[0]*0.10, background.get_size()[1]*0.15)
 button_image = pygame.image.load(os.path.join("images", "timer2.png")) 
@@ -21,15 +29,15 @@ def process(screen: pygame.Surface, dt: float):
     screen.blit(background)
     draw_text(screen=screen, s=timer_state, position=(400, 100))
 
-    if timer_state == 'stopped':
+    if timer_state == TimerState.STOPPED:
         process_stopped_timer(screen)
-    elif timer_state == 'running':
+    elif timer_state == TimerState.RUNNING:
         process_running_timer(screen, dt)
-    elif timer_state == 'overtime':
+    elif timer_state == TimerState.OVERTIME:
         process_overtime_timer(screen, dt)
-    elif timer_state == 'paused':
+    elif timer_state == TimerState.PAUSED:
         process_paused_timer(screen)
-    elif timer_state == 'final_hold':
+    elif timer_state == TimerState.FINAL_HOLD:
         process_final_hold_timer(screen)
     else:
         print('WARNING: Invalid timer state.')
@@ -54,7 +62,7 @@ def process_running_timer(screen, dt):
     count_down(dt)
     
     if total_seconds_remaining <= 0:
-        timer_state = 'overtime'
+        timer_state = TimerState.OVERTIME
 
     handle_click_to_pause()
     
@@ -102,7 +110,8 @@ def handle_click_to_start():
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = 'running'
+        timer_state = TimerState.RUNNING
+        # timer_state = 'running'
 
 
 def handle_click_to_pause():
@@ -110,7 +119,7 @@ def handle_click_to_pause():
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = 'paused'
+        timer_state = TimerState.PAUSED
 
 
 def handle_click_to_hold():
@@ -118,7 +127,7 @@ def handle_click_to_hold():
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = 'final_hold'
+        timer_state = TimerState.FINAL_HOLD
 
 # def handle_click_to_resume():
 #     global timer_state
@@ -135,7 +144,7 @@ def handle_click_to_reset():
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        timer_state = 'stopped'
+        timer_state = TimerState.STOPPED
         total_seconds_remaining = 10.0
 
 

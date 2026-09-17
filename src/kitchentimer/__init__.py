@@ -49,12 +49,12 @@ def process(screen: pygame.Surface, dt: float):
 
 def process_paused_timer(screen):
     draw_timer(screen)
-    handle_click_to_run()
+    handle_transition_to_run()
 
 
 def process_final_hold_timer(screen):
     draw_timer(screen)
-    handle_click_to_reset()
+    handle_transition_to_reset()
 
 
 def process_running_timer(screen, dt):
@@ -65,7 +65,7 @@ def process_running_timer(screen, dt):
         set_timer_state(TimerState.OVERTIME)
         alarm_sound.play(loops=-1)
     
-    handle_click_to_pause()
+    handle_transition_to_pause()
 
 
 def process_overtime_timer(screen, dt):
@@ -75,12 +75,12 @@ def process_overtime_timer(screen, dt):
         draw_timer(screen)
 
     count_down(dt)
-    handle_click_to_hold()
+    handle_transition_to_hold()
 
 
 def process_stopped_timer(screen):
     draw_button(screen)
-    handle_click_to_run()
+    handle_transition_to_run()
 
 
 def first_half_of_second(seconds: float):
@@ -106,25 +106,24 @@ def draw_timer(screen):
 
 ## Maybe some of these handlers will listen for RMB or for a continuous click,
 ## or for a key + click.
-## So I think it's acceptable to leave the duplicate "if button_just_clicked():" in each of them for now. At this stage is over-engineering
-## to go really any further than that.
-def handle_click_to_run():
+## So I think it's acceptable to leave the duplicate "if button_just_clicked():" for now.
+def handle_transition_to_run():
     if button_just_clicked():
         set_timer_state(TimerState.RUNNING)
 
 
-def handle_click_to_pause():
+def handle_transition_to_pause():
     if button_just_clicked():
         set_timer_state(TimerState.PAUSED)
 
 
-def handle_click_to_hold():
+def handle_transition_to_hold():
     if button_just_clicked():
         set_timer_state(TimerState.FINAL_HOLD)
         alarm_sound.stop()
 
 
-def handle_click_to_reset():
+def handle_transition_to_reset():
     if button_just_clicked():
         set_timer_state(TimerState.STOPPED)
         set_total_seconds_remaining(EGG_COOK_TIME_SECONDS)

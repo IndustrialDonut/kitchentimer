@@ -29,11 +29,20 @@ def process(screen: pygame.Surface, dt: float):
         process_overtime_timer(screen, dt)
     elif timer_state == 'paused':
         process_paused_timer(screen)
+    elif timer_state == 'final_hold':
+        process_final_hold_timer(screen)
     else:
         print('WARNING: Invalid timer state.')
 
 
 def process_paused_timer(screen):
+    draw_timer(screen)
+
+    handle_click_to_start()
+    # handle_click_to_resume()
+
+
+def process_final_hold_timer(screen):
     draw_timer(screen)
     handle_click_to_reset()
 
@@ -46,7 +55,8 @@ def process_running_timer(screen, dt):
     
     if total_seconds_remaining <= 0:
         timer_state = 'overtime'
-    # handle_click_to_pause()
+
+    handle_click_to_pause()
     
 
 def process_overtime_timer(screen, dt):
@@ -56,7 +66,8 @@ def process_overtime_timer(screen, dt):
         draw_timer(screen)
 
     count_down(dt)
-    handle_click_to_pause()
+    handle_click_to_hold()
+    # handle_click_to_pause()
 
 
 def process_stopped_timer(screen):
@@ -100,6 +111,21 @@ def handle_click_to_pause():
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
         timer_state = 'paused'
+
+
+def handle_click_to_hold():
+    global timer_state
+    rectangle = button_image.get_rect()
+    rectangle = rectangle.move(button_position)
+    if button_just_clicked(rectangle):
+        timer_state = 'final_hold'
+
+# def handle_click_to_resume():
+#     global timer_state
+#     rectangle = button_image.get_rect()
+#     rectangle = rectangle.move(button_position)
+#     if button_just_clicked(rectangle):
+#         timer_state = 'running'
 
 
 def handle_click_to_reset():

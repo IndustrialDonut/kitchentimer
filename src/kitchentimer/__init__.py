@@ -27,37 +27,38 @@ button_image = pygame.image.load(os.path.join("images", "timer2.png"))
 alarm_sound = pygame.mixer.Sound("audio/freesound_community-alarm-clock-short-6402.mp3")
 sizzling_sound = pygame.mixer.Sound("audio/oxidvideos-sizzlingcooking-eggs-414333.mp3")
 
-
+## 'process' functions will be called every frame, and have some code that executes (most likely)
+## 'handle' functions may still be called every frame, but are typically checking for a condition so as to execute only once before changing states.
 def process(screen: pygame.Surface, dt: float):
     ## BACKGROUND
     screen.blit(background)
-    draw_text(screen=screen, s=timer_state, position=(400, 100))
+    draw_text(screen=screen, s=timer_state, position=(400, 100)) ## debug state display
 
     if timer_state == TimerState.STOPPED:
-        process_stopped_timer(screen)
+        process_state_stopped(screen)
     elif timer_state == TimerState.RUNNING:
-        process_running_timer(screen, dt)
+        process_state_running(screen, dt)
     elif timer_state == TimerState.OVERTIME:
-        process_overtime_timer(screen, dt)
+        process_state_overtime(screen, dt)
     elif timer_state == TimerState.PAUSED:
-        process_paused_timer(screen)
+        process_state_paused(screen)
     elif timer_state == TimerState.FINAL_HOLD:
-        process_final_hold_timer(screen)
+        process_state_final_hold(screen)
     else:
         print('WARNING: Invalid timer state.')
 
 
-def process_paused_timer(screen):
+def process_state_paused(screen):
     draw_timer(screen)
-    handle_transition_to_run()
+    handle_transition_run()
 
 
-def process_final_hold_timer(screen):
+def process_state_final_hold(screen):
     draw_timer(screen)
-    handle_transition_to_reset()
+    handle_transition_reset()
 
 
-def process_running_timer(screen, dt):
+def process_state_running(screen, dt):
     draw_timer(screen)
     count_down(dt)
     
@@ -65,22 +66,22 @@ def process_running_timer(screen, dt):
         set_timer_state(TimerState.OVERTIME)
         alarm_sound.play(loops=-1)
     
-    handle_transition_to_pause()
+    handle_transition_pause()
 
 
-def process_overtime_timer(screen, dt):
+def process_state_overtime(screen, dt):
     if first_half_of_second(total_seconds_remaining):
         pass # hide timer
     else:
         draw_timer(screen)
 
     count_down(dt)
-    handle_transition_to_hold()
+    handle_transition_hold()
 
 
-def process_stopped_timer(screen):
+def process_state_stopped(screen):
     draw_button(screen)
-    handle_transition_to_run()
+    handle_transition_run()
 
 
 def first_half_of_second(seconds: float):
@@ -107,23 +108,23 @@ def draw_timer(screen):
 ## Maybe some of these handlers will listen for RMB or for a continuous click,
 ## or for a key + click.
 ## So I think it's acceptable to leave the duplicate "if button_just_clicked():" for now.
-def handle_transition_to_run():
+def handle_transition_run():
     if button_just_clicked():
         set_timer_state(TimerState.RUNNING)
 
 
-def handle_transition_to_pause():
+def handle_transition_pause():
     if button_just_clicked():
         set_timer_state(TimerState.PAUSED)
 
 
-def handle_transition_to_hold():
+def handle_transition_hold():
     if button_just_clicked():
         set_timer_state(TimerState.FINAL_HOLD)
         alarm_sound.stop()
 
 
-def handle_transition_to_reset():
+def handle_transition_reset():
     if button_just_clicked():
         set_timer_state(TimerState.STOPPED)
         set_total_seconds_remaining(EGG_COOK_TIME_SECONDS)

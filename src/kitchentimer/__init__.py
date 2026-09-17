@@ -1,5 +1,6 @@
 import pygame
 import os
+from enum import StrEnum
 
 # pygame setup
 pygame.init()
@@ -10,37 +11,76 @@ running = True
 dt = 0
 total_seconds_remaining = 10.0
 
-is_alarm_played = False
-button_was_clicked = False
+class TimerState(StrEnum):
+    STOPPED = 'Stopped'
+    RUNNING = 'Running'
+    OVERTIME = 'Overtime'
+    PAUSED = 'Paused'
+    FINAL_HOLD = 'Final Hold'
+
+timer_state: TimerState = TimerState.STOPPED
 
 button_position = (background.get_size()[0]*0.10, background.get_size()[1]*0.15)
 button_image = pygame.image.load(os.path.join("images", "timer2.png")) 
 
 
 def process(screen: pygame.Surface, dt: float):
-    global is_alarm_played
-
     ## BACKGROUND
     screen.blit(background)
+    draw_text(screen=screen, s=timer_state, position=(400, 100))
 
-    if button_was_clicked:
-        if total_seconds_remaining <= 0:
-            if not is_alarm_played:
-                # play_alarm_sound()
-                is_alarm_played = True
-            
-            if first_half_of_second(total_seconds_remaining):
-                pass # hide timer
-            else:
-                draw_timer(screen)
-        
-        else:
-            draw_timer(screen)
-
-        count_down(dt)
+    if timer_state == TimerState.STOPPED:
+        process_stopped_timer(screen)
+    elif timer_state == TimerState.RUNNING:
+        process_running_timer(screen, dt)
+    elif timer_state == TimerState.OVERTIME:
+        process_overtime_timer(screen, dt)
+    elif timer_state == TimerState.PAUSED:
+        process_paused_timer(screen)
+    elif timer_state == TimerState.FINAL_HOLD:
+        process_final_hold_timer(screen)
     else:
-        draw_button(screen)
-        process_button()
+        print('WARNING: Invalid timer state.')
+
+
+def process_paused_timer(screen):
+    draw_timer(screen)
+
+    handle_click_to_start()
+    # handle_click_to_resume()
+
+
+def process_final_hold_timer(screen):
+    draw_timer(screen)
+    handle_click_to_reset()
+
+
+def process_running_timer(screen, dt):
+    global timer_state
+
+    draw_timer(screen)
+    count_down(dt)
+    
+    if total_seconds_remaining <= 0:
+        timer_state = TimerState.OVERTIME
+
+    handle_click_to_pause()
+    
+
+def process_overtime_timer(screen, dt):
+    if first_half_of_second(total_seconds_remaining):
+        pass # hide timer
+    else:
+        draw_timer(screen)
+
+    count_down(dt)
+    handle_click_to_hold()
+    # handle_click_to_pause()
+
+
+def process_stopped_timer(screen):
+    draw_button(screen)
+    handle_click_to_start()
 
 
 def first_half_of_second(seconds: float):
@@ -65,12 +105,47 @@ def draw_timer(screen):
     draw_text(screen, formatted_time_string, position=button_center)
 
 
-def process_button():
-    global button_was_clicked
+def handle_click_to_start():
+    global timer_state
     rectangle = button_image.get_rect()
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
-        button_was_clicked = not button_was_clicked
+        timer_state = TimerState.RUNNING
+        # timer_state = 'running'
+
+
+def handle_click_to_pause():
+    global timer_state
+    rectangle = button_image.get_rect()
+    rectangle = rectangle.move(button_position)
+    if button_just_clicked(rectangle):
+        timer_state = TimerState.PAUSED
+
+
+def handle_click_to_hold():
+    global timer_state
+    rectangle = button_image.get_rect()
+    rectangle = rectangle.move(button_position)
+    if button_just_clicked(rectangle):
+        timer_state = TimerState.FINAL_HOLD
+
+# def handle_click_to_resume():
+#     global timer_state
+#     rectangle = button_image.get_rect()
+#     rectangle = rectangle.move(button_position)
+#     if button_just_clicked(rectangle):
+#         timer_state = 'running'
+
+
+def handle_click_to_reset():
+    global timer_state
+    global total_seconds_remaining
+
+    rectangle = button_image.get_rect()
+    rectangle = rectangle.move(button_position)
+    if button_just_clicked(rectangle):
+        timer_state = TimerState.STOPPED
+        total_seconds_remaining = 10.0
 
 
 def draw_button(screen: pygame.Surface):

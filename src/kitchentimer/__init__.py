@@ -22,7 +22,8 @@ timer_state: TimerState = TimerState.STOPPED
 
 button_position = (background.get_size()[0]*0.10, background.get_size()[1]*0.15)
 button_image = pygame.image.load(os.path.join("images", "timer2.png")) 
-
+alarm_sound = pygame.mixer.Sound("audio/freesound_community-alarm-clock-short-6402.mp3")
+sizzling_sound = pygame.mixer.Sound("audio/oxidvideos-sizzlingcooking-eggs-414333.mp3")
 
 def process(screen: pygame.Surface, dt: float):
     ## BACKGROUND
@@ -63,7 +64,7 @@ def process_running_timer(screen, dt):
     
     if total_seconds_remaining <= 0:
         timer_state = TimerState.OVERTIME
-
+        alarm_sound.play(loops=-1)
     handle_click_to_pause()
     
 
@@ -75,7 +76,7 @@ def process_overtime_timer(screen, dt):
 
     count_down(dt)
     handle_click_to_hold()
-    # handle_click_to_pause()
+    
 
 
 def process_stopped_timer(screen):
@@ -128,7 +129,7 @@ def handle_click_to_hold():
     rectangle = rectangle.move(button_position)
     if button_just_clicked(rectangle):
         timer_state = TimerState.FINAL_HOLD
-
+        alarm_sound.stop()
 # def handle_click_to_resume():
 #     global timer_state
 #     rectangle = button_image.get_rect()
